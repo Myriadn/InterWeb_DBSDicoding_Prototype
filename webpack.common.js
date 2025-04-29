@@ -9,6 +9,7 @@ module.exports = {
   output: {
     filename: '[name].bundle.js',
     path: path.resolve(__dirname, 'dist'),
+    clean: true,
   },
   module: {
     rules: [
@@ -26,6 +27,10 @@ module.exports = {
       patterns: [
         {
           from: path.resolve(__dirname, 'src/public/'),
+          to: path.resolve(__dirname, 'dist/'),
+        },
+        {
+          from: path.resolve(__dirname, 'src/scripts/sw.js'),
           to: path.resolve(__dirname, 'dist/'),
         },
       ],

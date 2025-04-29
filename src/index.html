@@ -3,7 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Aplikasi berbagi cerita dan foto" />
+    <meta name="theme-color" content="#3498db" />
+    
     <link rel="shortcut icon" href="favicon.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/images/icons/icon-192x192.png" />
+    
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -23,6 +29,7 @@
     <a href="#main-content" class="skip-to-content" id="skip-link"
       >Langsung ke konten</a
     >
+    <!-- Application Shell start -->
     <header>
       <div class="main-header container">
         <a class="brand-name" href="#/">Myriadn Story App</a>
@@ -42,8 +49,57 @@
     </header>
 
     <main id="main-content" class="main-content" tabindex="-1"></main>
+    <!-- Application Shell end -->
+    
+    <!-- Offline notification -->
+    <div id="offline-notification" class="offline-notification hidden">
+      Anda sedang offline. Beberapa fitur mungkin tidak tersedia.
+    </div>
+
+    <!-- Install Prompt -->
+    <div id="install-app" class="install-banner hidden">
+      <div class="install-content">
+        <p>Instal aplikasi ini di perangkat Anda</p>
+        <div class="install-actions">
+          <button id="install-button">Instal</button>
+          <button id="dismiss-install" aria-label="Tutup">×</button>
+        </div>
+      </div>
+    </div>
 
     <script>
+      // Detect offline/online status
+      window.addEventListener('online', () => {
+        document.getElementById('offline-notification').classList.add('hidden');
+      });
+      
+      window.addEventListener('offline', () => {
+        document.getElementById('offline-notification').classList.remove('hidden');
+      });
+      
+      // Handle PWA installation
+      let deferredPrompt;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        document.getElementById('install-app').classList.remove('hidden');
+      });
+      
+      document.getElementById('install-button').addEventListener('click', async () => {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          console.log(`User response to install prompt: ${outcome}`);
+          deferredPrompt = null;
+          document.getElementById('install-app').classList.add('hidden');
+        }
+      });
+      
+      document.getElementById('dismiss-install').addEventListener('click', () => {
+        document.getElementById('install-app').classList.add('hidden');
+      });
+      
+      // Skip to content functionality
       document.addEventListener("DOMContentLoaded", function () {
         // Skip to content functionality
         const setupSkipToContent = () => {

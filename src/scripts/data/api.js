@@ -5,6 +5,7 @@ const ENDPOINTS = {
   LOGIN: `${CONFIG.BASE_URL}/login`,
   STORIES: `${CONFIG.BASE_URL}/stories`,
   STORY_DETAIL: (id) => `${CONFIG.BASE_URL}/stories/${id}`,
+  NOTIFICATION_SUBSCRIBE: `${CONFIG.BASE_URL}/notifications/subscribe`,
 };
 
 export async function register({ name, email, password }) {
@@ -108,5 +109,71 @@ export async function getStoryDetail(id) {
   } catch (error) {
     console.error("Error getting story detail:", error);
     return { error: true, message: "Gagal memuat detail cerita" };
+  }
+}
+
+export async function subscribeNotification(subscription) {
+  // Mengambil token dari localStorage
+  const token = localStorage.getItem("token");
+
+  // Cek apakah token tersedia
+  if (!token) {
+    return { error: true, message: "Token tidak tersedia" };
+  }
+
+  try {
+    const response = await fetch(ENDPOINTS.NOTIFICATION_SUBSCRIBE, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(subscription),
+    });
+
+    if (!response.ok) {
+      return {
+        error: true,
+        message: `Error ${response.status}: ${response.statusText}`,
+      };
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error subscribing to notification:", error);
+    return { error: true, message: "Gagal berlangganan notifikasi" };
+  }
+}
+
+export async function unsubscribeNotification(subscription) {
+  // Mengambil token dari localStorage
+  const token = localStorage.getItem("token");
+
+  // Cek apakah token tersedia
+  if (!token) {
+    return { error: true, message: "Token tidak tersedia" };
+  }
+
+  try {
+    const response = await fetch(ENDPOINTS.NOTIFICATION_SUBSCRIBE, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(subscription),
+    });
+
+    if (!response.ok) {
+      return {
+        error: true,
+        message: `Error ${response.status}: ${response.statusText}`,
+      };
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error unsubscribing from notification:", error);
+    return { error: true, message: "Gagal berhenti berlangganan notifikasi" };
   }
 }

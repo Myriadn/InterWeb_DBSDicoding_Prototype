@@ -1,0 +1,147 @@
+/* PWA specific styles */
+
+/* Offline notification */
+.offline-notification {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #f39c12;
+  color: white;
+  text-align: center;
+  padding: 10px;
+  z-index: 1000;
+  transition: transform 0.3s ease-in-out;
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+  font-weight: 500;
+}
+
+.offline-notification.hidden {
+  transform: translateY(100%);
+}
+
+/* Install banner */
+.install-banner {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  max-width: 90%;
+  width: 340px;
+  padding: 15px;
+  transition: all 0.3s ease;
+}
+
+.install-banner.hidden {
+  transform: translate(-50%, 150%);
+  opacity: 0;
+}
+
+.install-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.install-content p {
+  margin: 0;
+  font-weight: 500;
+}
+
+.install-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#install-button {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+#install-button:hover {
+  background-color: #2980b9;
+}
+
+#dismiss-install {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #95a5a6;
+  padding: 0;
+  margin: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#dismiss-install:hover {
+  color: #7f8c8d;
+}
+
+/* App Shell styling - ensure skeleton appears correctly when offline */
+.app-shell-skeleton {
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  margin: 20px;
+  min-height: 200px;
+  animation: pulse 1.5s infinite alternate;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Content-specific styling */
+.content-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.content-placeholder {
+  height: 20px;
+  background-color: #eee;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  animation: pulse 1.5s infinite alternate;
+}
+
+/* Ensure images have a max width and height for better caching */
+.story-item img {
+  max-width: 100%;
+  height: auto;
+  background-color: #f1f1f1;
+  min-height: 200px;
+}
+
+/* Fallback styling for offline maps */
+.offline-map-placeholder {
+  background-color: #e9ecef;
+  color: #495057;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  margin: 15px 0;
+  border: 1px dashed #ced4da;
+}

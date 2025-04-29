@@ -1,10 +1,12 @@
 // src/scripts/pages/home/home-presenter.js
 import { getStories } from "../../data/api";
+import StoryNotificationHelper from "../../utils/story-notification-helper";
 
 export default class HomePresenter {
   constructor(view) {
     this.view = view;
     this.stories = [];
+    this._setupPeriodicCheck();
   }
 
   async loadStories() {
@@ -32,6 +34,9 @@ export default class HomePresenter {
 
       this.stories = response.listStory || [];
 
+      // Periksa cerita baru untuk notifikasi
+      await StoryNotificationHelper.checkForNewStories(this.stories);
+
       // Display only if we have stories
       if (this.stories.length > 0) {
         this.view.displayStories(this.stories);
@@ -41,6 +46,24 @@ export default class HomePresenter {
     } catch (error) {
       console.error("Error loading stories:", error);
       this.view.showError("Failed to load stories. Please try again later.");
+    }
+  }
+
+  // Setup periodic check for new stories
+  _setupPeriodicCheck() {
+    // Periksa story baru setiap 60 detik
+    this._checkInterval = setInterval(async () => {
+      // Hanya lakukan jika user sedang berada di halaman ini
+      if (window.location.hash === '#/' || window.location.hash === '') {
+        await this.loadStories();
+      }
+    }, 60000); // 60 detik
+  }
+
+  // Bersihkan interval saat komponen dihancurkan
+  cleanupInterval() {
+    if (this._checkInterval) {
+      clearInterval(this._checkInterval);
     }
   }
 

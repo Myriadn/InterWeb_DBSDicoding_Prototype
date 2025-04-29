@@ -1,15 +1,20 @@
 // src/scripts/pages/home/home-page.js
 import HomePresenter from "./home-presenter";
 import NavigationHelper from "../../utils/navigation-helper";
+import NotificationHelper from "../../utils/notification-helper";
 
 export default class HomePage {
   constructor() {
     this.presenter = new HomePresenter(this);
+    this._isOnline = navigator.onLine;
   }
 
   async render() {
     // Get username from localStorage
     const userName = localStorage.getItem("userName");
+
+    // Cek apakah notifikasi didukung
+    const notificationSupported = NotificationHelper.isPushNotificationSupported();
 
     return `
       <section class="container" id="main-content">
@@ -18,8 +23,19 @@ export default class HomePage {
             userName || "User"
           }!</h2>
         </div>
+        ${notificationSupported ? `
+          <div class="notification-container">
+            <button id="btnSubscription" class="btn-subscribe">
+              <i class="fas fa-bell"></i> <span id="subscriptionStatus">Aktifkan Notifikasi Cerita Baru</span>
+            </button>
+          </div>
+        ` : ''}
         <h1>Daftar Story</h1>
-        <div id="story-list"></div>
+        
+        <!-- App Shell untuk menampilkan konten saat loading atau offline -->
+        <div id="story-list" class="content-loading">
+          <div class="app-shell-skeleton"></div>
+        </div>
       </section>
     `;
   }
@@ -28,13 +44,107 @@ export default class HomePage {
     // Menggunakan NavigationHelper untuk pengaturan navigasi
     NavigationHelper.setupAuthenticatedNavigation();
 
+    // Setup subscription button
+    this._setupSubscriptionButton();
+    
+    // Setup online/offline handler
+    this._setupOnlineOfflineHandler();
+
     // Load stories
     this.presenter.loadStories();
+  }
+
+  _setupSubscriptionButton() {
+    const btnSubscription = document.getElementById('btnSubscription');
+    if (!btnSubscription) return;
+
+    // Periksa status subscription
+    this._updateSubscriptionButtonUI();
+
+    // Tambah event listener untuk button
+    btnSubscription.addEventListener('click', async () => {
+      const isSubscribed = NotificationHelper.isUserSubscribed();
+      
+      if (isSubscribed) {
+        // User ingin unsubscribe
+        const result = await NotificationHelper.unsubscribePushNotification();
+        this._showNotification(result.message);
+        this._updateSubscriptionButtonUI();
+      } else {
+        // User ingin subscribe
+        const registration = await NotificationHelper.registerServiceWorker();
+        const result = await NotificationHelper.subscribePushNotification(registration);
+        this._showNotification(result.message);
+        this._updateSubscriptionButtonUI();
+      }
+    });
+  }
+
+  _setupOnlineOfflineHandler() {
+    // Listen for online/offline events
+    window.addEventListener('online', () => {
+      this._isOnline = true;
+      this._showNotification('Anda kembali online. Menyegarkan data...');
+      
+      // Reload data when back online
+      this.presenter.loadStories();
+    });
+    
+    window.addEventListener('offline', () => {
+      this._isOnline = false;
+      this._showNotification('Anda sedang offline. Data yang ditampilkan mungkin tidak terbaru.');
+    });
+  }
+
+  _updateSubscriptionButtonUI() {
+    const btnSubscription = document.getElementById('btnSubscription');
+    const subscriptionStatus = document.getElementById('subscriptionStatus');
+    if (!btnSubscription || !subscriptionStatus) return;
+
+    const isSubscribed = NotificationHelper.isUserSubscribed();
+    
+    if (isSubscribed) {
+      btnSubscription.classList.add('subscribed');
+      btnSubscription.classList.remove('btn-subscribe');
+      btnSubscription.classList.add('btn-unsubscribe');
+      subscriptionStatus.textContent = 'Notifikasi Aktif (Klik untuk nonaktifkan)';
+    } else {
+      btnSubscription.classList.remove('subscribed');
+      btnSubscription.classList.add('btn-subscribe');
+      btnSubscription.classList.remove('btn-unsubscribe');
+      subscriptionStatus.textContent = 'Aktifkan Notifikasi Cerita Baru';
+    }
+  }
+
+  _showNotification(message) {
+    // Tambahkan elemen notifikasi jika belum ada
+    let notificationEl = document.querySelector('.toast-notification');
+    if (!notificationEl) {
+      notificationEl = document.createElement('div');
+      notificationEl.className = 'toast-notification hidden';
+      document.body.appendChild(notificationEl);
+    }
+
+    notificationEl.textContent = message;
+    notificationEl.classList.remove('hidden');
+    
+    // Hilangkan setelah 3 detik
+    setTimeout(() => {
+      notificationEl.classList.add('hidden');
+    }, 3000);
   }
 
   displayStories(stories) {
     const container = document.getElementById("story-list");
     if (!container) return;
+
+    // Remove loading skeleton
+    container.classList.remove('content-loading');
+
+    if (!stories || stories.length === 0) {
+      this.showEmptyState();
+      return;
+    }
 
     container.innerHTML = stories
       .map(
@@ -42,7 +152,8 @@ export default class HomePage {
       <div class="story-item">
         <img src="${story.photoUrl}" 
              alt="Foto oleh ${story.name}: ${story.description}"
-             loading="lazy">
+             loading="lazy"
+             onerror="this.onerror=null; this.src='/images/icons/icon-192x192.png'; this.alt='Gambar tidak tersedia saat offline';">
         <h2>${story.name}</h2>
         <p>${story.description}</p>
         <p class="created-at"><i class="fas fa-calendar"></i> ${this.formatDate(
@@ -50,9 +161,14 @@ export default class HomePage {
         )}</p>
         ${
           story.lat && story.lon
-            ? `<div class="mini-map" 
+            ? this._isOnline 
+              ? `<div class="mini-map" 
                    data-lat="${story.lat}" 
                    data-lon="${story.lon}"></div>`
+              : `<div class="offline-map-placeholder">
+                   <i class="fas fa-map-marker-alt"></i> Lokasi: ${story.lat.toFixed(4)}, ${story.lon.toFixed(4)}
+                   <p>Peta tidak tersedia saat offline</p>
+                 </div>`
             : ""
         }
         <div class="story-action">
@@ -124,16 +240,82 @@ export default class HomePage {
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       }
+
+      .notification-container {
+        margin: 20px 0;
+        display: flex;
+        justify-content: center;
+      }
+
+      .btn-subscribe, .btn-unsubscribe {
+        padding: 10px 20px;
+        border-radius: 50px;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+      }
+
+      .btn-subscribe {
+        background-color: #3498db;
+        color: white;
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .btn-subscribe:hover {
+        background-color: #2980b9;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+      }
+
+      .btn-unsubscribe {
+        background-color: #e74c3c;
+        color: white;
+      }
+
+      .btn-unsubscribe:hover {
+        background-color: #c0392b;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+      }
+
+      .toast-notification {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #2ecc71;
+        color: white;
+        padding: 15px 25px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 1000;
+        opacity: 1;
+        transition: opacity 0.3s ease, transform 0.3s ease;
+      }
+
+      .toast-notification.hidden {
+        opacity: 0;
+        transform: translate(-50%, 20px);
+      }
     `;
     document.head.appendChild(styleElement);
 
-    // Inisialisasi peta SETELAH DOM di-update
-    this.initMiniMaps();
+    // Inisialisasi peta SETELAH DOM di-update jika online
+    if (this._isOnline) {
+      this.initMiniMaps();
+    }
   }
 
   showEmptyState() {
     const container = document.getElementById("story-list");
     if (!container) return;
+
+    // Remove loading skeleton
+    container.classList.remove('content-loading');
 
     container.innerHTML = `
       <div class="empty-state">
@@ -195,9 +377,46 @@ export default class HomePage {
             "Carto": cartoVoyager
           };
 
-          // Add a marker with popup
-          const marker = L.marker([lat, lon]).addTo(miniMap);
+          // Kustomisasi ikon marker untuk mengatasi masalah glitching
+          const customIcon = L.icon({
+            iconUrl: '/images/icons/add-x512.png',
+            iconSize: [32, 32],
+            iconAnchor: [16, 32],
+            popupAnchor: [0, -32],
+            shadowUrl: null,
+            shadowSize: null,
+            shadowAnchor: null,
+            className: 'custom-marker-icon'
+          });
+
+          // Add a marker with popup yang sudah dipersiapkan
+          const marker = L.marker([lat, lon], {
+            icon: customIcon,
+            title: `Location: ${parseFloat(lat).toFixed(4)}, ${parseFloat(lon).toFixed(4)}`,
+            alt: 'Story Location',
+            riseOnHover: true
+          }).addTo(miniMap);
           
+          // Buat konten popup
+          const popupContent = `
+            <div class="location-popup">
+              <strong>Lokasi Story</strong><br>
+              Koordinat: ${parseFloat(lat).toFixed(4)}, ${parseFloat(lon).toFixed(4)}
+            </div>
+          `;
+          
+          // Siapkan popup dengan konten yang sudah disusun
+          const popup = L.popup({
+            closeButton: false,
+            autoClose: false,
+            closeOnEscapeKey: false,
+            closeOnClick: false,
+            className: 'custom-popup'
+          }).setContent(popupContent);
+          
+          // Tambahkan popup ke marker
+          marker.bindPopup(popup);
+
           // Custom compact layer control
           const layerControl = L.control.layers(baseMaps, {}, {
             collapsed: true,
@@ -247,7 +466,7 @@ export default class HomePage {
                   font-weight: bold;
                 `;
                 
-                // Efectos hover
+                // Efek hover
                 button.addEventListener('mouseover', function() {
                   this.style.backgroundColor = '#3498db';
                   this.style.color = 'white';
@@ -263,7 +482,7 @@ export default class HomePage {
                 });
               });
               
-              // Estilo específico para los símbolos + y -
+              // Style untuk simbol + dan -
               const symbols = container.querySelectorAll('.zoom-symbol');
               symbols.forEach(symbol => {
                 symbol.style.cssText = `
@@ -273,7 +492,7 @@ export default class HomePage {
                 `;
               });
               
-              // Agregar eventos de clic
+              // Tambahkan event click
               const zoomIn = container.querySelector('.zoom-in');
               const zoomOut = container.querySelector('.zoom-out');
               
@@ -297,18 +516,27 @@ export default class HomePage {
             }
           });
           
-          // Agregar los controles personalizados al mapa
+          // Tambahkan kontrol ke peta
           miniMap.addControl(new customZoomControl());
 
-          // Add hover effect to show popup
+          // Tampilkan popup saat mouse hover
           mapEl.addEventListener('mouseenter', () => {
-            marker.bindPopup(`Location: ${lat.substring(0, 6)}, ${lon.substring(0, 6)}`).openPopup();
+            marker.openPopup();
+          });
+          
+          // Tutup popup saat mouse leave
+          mapEl.addEventListener('mouseleave', () => {
+            // Delay popup close untuk animasi yang lebih halus
+            setTimeout(() => marker.closePopup(), 300);
           });
 
-          // Invalidate size to ensure proper rendering
+          // Invalidate size setelah DOM sepenuhnya dirender
           setTimeout(() => {
             miniMap.invalidateSize();
-          }, 100);
+            // Buka popup sebentar lalu tutup untuk mencegah glitch
+            marker.openPopup();
+            setTimeout(() => marker.closePopup(), 100);
+          }, 500);
 
           // Add scale
           L.control.scale({ 
@@ -318,12 +546,43 @@ export default class HomePage {
             maxWidth: 100
           }).addTo(miniMap);
 
+          // Tambahkan style untuk marker dan popup
+          const mapStyle = document.createElement('style');
+          mapStyle.textContent = `
+            .custom-marker-icon {
+              transition: all 0.3s ease;
+              filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+            }
+            
+            .custom-marker-icon:hover {
+              transform: scale(1.2);
+            }
+            
+            .custom-popup .leaflet-popup-content-wrapper {
+              background-color: rgba(255, 255, 255, 0.9);
+              border-radius: 8px;
+              box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            }
+            
+            .custom-popup .leaflet-popup-tip {
+              background-color: rgba(255, 255, 255, 0.9);
+            }
+            
+            .location-popup {
+              padding: 5px;
+              font-family: 'Poppins', sans-serif;
+            }
+          `;
+          document.head.appendChild(mapStyle);
+
           // Tambahkan style untuk inisialisasi peta
           mapEl.style.height = "200px";
           mapEl.style.borderRadius = "8px";
           mapEl.style.marginTop = "15px";
           mapEl.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
           mapEl.style.border = "1px solid #e0e0e0";
+          mapEl.style.position = "relative";
+          mapEl.style.overflow = "hidden";
 
         } catch (error) {
           console.error("Error initializing mini map:", error);
@@ -344,6 +603,20 @@ export default class HomePage {
     const container = document.getElementById("story-list");
     if (!container) return;
 
-    container.innerHTML = `<p class="error">⛔ ${message}</p>`;
+    // Remove loading skeleton
+    container.classList.remove('content-loading');
+    
+    // Show offline message instead of generic error if offline
+    if (!this._isOnline) {
+      container.innerHTML = `
+        <div class="offline-state">
+          <i class="fas fa-wifi-slash fa-3x"></i>
+          <h3>Anda sedang offline</h3>
+          <p>Tidak dapat memuat data baru saat ini. Periksa koneksi internet Anda dan coba lagi.</p>
+        </div>
+      `;
+    } else {
+      container.innerHTML = `<p class="error">⛔ ${message}</p>`;
+    }
   }
 }
