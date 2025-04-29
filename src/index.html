@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="shortcut icon" href="favicon.png" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap"
+    />
+    <title>Myriadn Story App</title>
+  </head>
+  <body>
+    <a href="#main-content" class="skip-to-content" id="skip-link"
+      >Langsung ke konten</a
+    >
+    <header>
+      <div class="main-header container">
+        <a class="brand-name" href="#/">Myriadn Story App</a>
+        <button
+          id="drawer-button"
+          class="drawer-button"
+          aria-label="Menu Toggle"
+        >
+          ☰
+        </button>
+        <nav id="navigation-drawer" class="navigation-drawer">
+          <ul id="nav-list" class="nav-list">
+            <!-- Navigation items will be dynamically loaded based on login state -->
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main-content" class="main-content" tabindex="-1"></main>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Skip to content functionality
+        const setupSkipToContent = () => {
+          const skipLink = document.getElementById("skip-link");
+          const mainContent = document.getElementById("main-content");
+
+          if (skipLink && mainContent) {
+            skipLink.addEventListener("click", function (e) {
+              e.preventDefault();
+              mainContent.focus();
+              mainContent.scrollIntoView({ behavior: "smooth" });
+
+              // Set a visible focus indicator on the main content
+              mainContent.classList.add("content-focused");
+
+              // Remove the focus indicator after a delay
+              setTimeout(() => {
+                mainContent.classList.remove("content-focused");
+              }, 2000);
+            });
+          }
+        };
+
+        // Call skip to content setup on initial load
+        setupSkipToContent();
+
+        // Also set up when hash changes to ensure it works across navigation
+        window.addEventListener("hashchange", () => {
+          // Allow time for the new content to load
+          setTimeout(setupSkipToContent, 100);
+        });
+
+        // Handle mobile menu navigation
+        const setupMobileNavigation = () => {
+          const drawerButton = document.getElementById("drawer-button");
+          const navDrawer = document.getElementById("navigation-drawer");
+
+          if (drawerButton && navDrawer) {
+            // Add event listener to toggle navigation drawer
+            drawerButton.addEventListener("click", () => {
+              navDrawer.classList.toggle("open");
+            });
+
+            // Close drawer when clicking outside
+            document.addEventListener("click", (event) => {
+              if (
+                navDrawer.classList.contains("open") &&
+                !navDrawer.contains(event.target) &&
+                !drawerButton.contains(event.target)
+              ) {
+                navDrawer.classList.remove("open");
+              }
+            });
+
+            // Close drawer when clicking on navigation items
+            const navItems = navDrawer.querySelectorAll("a");
+            navItems.forEach((item) => {
+              item.addEventListener("click", () => {
+                navDrawer.classList.remove("open");
+              });
+            });
+          }
+        };
+
+        // Initialize mobile navigation
+        setupMobileNavigation();
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,226 @@
+/* Base styles */
+
+/* ===== Font Import ===== */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Open+Sans:wght@400;500;600&display=swap");
+
+/* ===== CSS Variables ===== */
+:root {
+  /* Color palette - Modern Gradient Color Scheme */
+  --primary-color: #3a36e0;      /* Vibrant Purple-Blue */
+  --primary-dark: #2d2abe;       /* Darker Purple */
+  --primary-light: #6e6ae4;      /* Lighter Purple */
+
+  --secondary-color: #00ccb4;    /* Turquoise */
+  --secondary-dark: #00a896;     /* Deeper Turquoise */
+  --secondary-light: #42e2d1;    /* Light Turquoise */
+
+  --accent-color: #ff6f61;       /* Coral */
+  --accent-dark: #e85a4f;        /* Darker Coral */
+  --accent-light: #ff9287;       /* Light Coral */
+
+  --bg-color: #f7f9fc;           /* Very Light Blue-Gray Background */
+  --bg-darker: #e9ecf5;          /* Slightly Darker for Cards */
+  --bg-light: #ffffff;           /* White for Content Areas */
+  
+  --text-color-dark: #303952;    /* Dark Blue-Gray for Main Text */
+  --text-color-medium: #596275;  /* Medium Blue-Gray for Secondary Text */
+  --text-color-light: #8395a7;   /* Light Blue-Gray for Captions */
+  
+  --border-color: #dfe6e9;       /* Light Gray for Borders */
+  --error-color: #ff7675;        /* Soft Red for Errors */
+  --success-color: #55efc4;      /* Mint Green for Success */
+  --warning-color: #feca57;      /* Soft Yellow for Warnings */
+  --info-color: #63cdff;         /* Soft Blue for Info */
+
+  /* Shadows with slight color tint */
+  --shadow-small: 0 2px 8px rgba(58, 54, 224, 0.07);
+  --shadow-medium: 0 4px 16px rgba(58, 54, 224, 0.09);
+  --shadow-large: 0 8px 30px rgba(58, 54, 224, 0.12);
+  --header-shadow: 0 3px 12px rgba(58, 54, 224, 0.15);
+  --card-shadow: 0 10px 25px rgba(58, 54, 224, 0.08);
+  
+  /* Remaining variables stay the same */
+  /* Spacing */
+  --spacing-xs: 0.25rem;   /* 4px */
+  --spacing-sm: 0.5rem;    /* 8px */
+  --spacing-md: 1rem;      /* 16px */
+  --spacing-lg: 1.5rem;    /* 24px */
+  --spacing-xl: 2rem;      /* 32px */
+  --spacing-xxl: 3rem;     /* 48px */
+
+  /* Border Radius */
+  --border-radius-sm: 0.25rem;  /* 4px */
+  --border-radius-md: 0.5rem;   /* 8px */
+  --border-radius-lg: 1rem;     /* 16px */
+  --border-radius-xl: 1.5rem;   /* 24px */
+  --border-radius-pill: 50px;   /* Pill shape */
+
+  /* Fonts */
+  --font-family-primary: 'Poppins', sans-serif;
+  --font-family-secondary: 'Open Sans', sans-serif;
+  
+  /* Font Sizes */
+  --font-size-xs: 0.75rem;      /* 12px */
+  --font-size-sm: 0.875rem;     /* 14px */
+  --font-size-md: 1rem;         /* 16px */
+  --font-size-lg: 1.125rem;     /* 18px */
+  --font-size-xl: 1.25rem;      /* 20px */
+  --font-size-xxl: 1.5rem;      /* 24px */
+  --font-size-xxxl: 2rem;       /* 32px */
+  --font-size-xxxxl: 2.5rem;    /* 40px */
+
+  /* Animation speed */
+  --transition-speed: 0.3s;
+  --transition-timing: ease;
+}
+
+/* ===== Reset ===== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-family-secondary);
+  font-size: var(--font-size-md);
+  line-height: 1.6;
+  color: var(--text-color-dark);
+  background-color: var(--bg-color);
+  min-height: 100vh;
+  position: relative;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family-primary);
+  line-height: 1.3;
+  color: var(--primary-dark);
+  margin-bottom: var(--spacing-sm);
+}
+
+h1 { font-size: var(--font-size-xxxxl); }
+h2 { font-size: var(--font-size-xxxl); }
+h3 { font-size: var(--font-size-xxl); }
+h4 { font-size: var(--font-size-xl); }
+h5 { font-size: var(--font-size-lg); }
+h6 { font-size: var(--font-size-md); font-weight: 600; }
+
+p {
+  margin-bottom: var(--spacing-md);
+}
+
+a {
+  color: var(--secondary-color);
+  text-decoration: none;
+  transition: all var(--transition-speed) var(--transition-timing);
+}
+
+a:hover {
+  color: var(--secondary-dark);
+}
+
+ul, ol {
+  padding-left: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+button, .button {
+  cursor: pointer;
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-md);
+  font-weight: 500;
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background-color: var(--secondary-color);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-md);
+  transition: all var(--transition-speed) var(--transition-timing);
+}
+
+button:hover, .button:hover {
+  background-color: var(--secondary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-small);
+}
+
+button:focus, .button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 204, 180, 0.4);
+}
+
+button:active, .button:active {
+  transform: translateY(0);
+}
+
+/* For semantic HTML5 elements in older browsers */
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, main, menu, nav, section {
+  display: block;
+}
+
+/* Remove marker from navigation lists */
+nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* ===== Container and Layout ===== */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  padding-left: var(--spacing-md);
+  padding-right: var(--spacing-md);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.container-sm {
+  max-width: 800px;
+}
+
+.container-lg {
+  max-width: 1400px;
+}
+
+/* ===== Accessibility ===== */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+/* Focus styles for keyboard navigation */
+:focus-visible {
+  outline: 3px solid var(--secondary-color);
+  outline-offset: 2px;
+}
+
+/* ===== Responsive font sizes ===== */
+@media screen and (max-width: 768px) {
+  html {
+    font-size: 14px; /* Slightly smaller base font size on mobile */
+  }
+  
+  h1 { font-size: calc(var(--font-size-xxxxl) * 0.8); }
+  h2 { font-size: calc(var(--font-size-xxxl) * 0.8); }
+  h3 { font-size: calc(var(--font-size-xxl) * 0.8); }
+}

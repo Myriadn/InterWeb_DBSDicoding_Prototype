@@ -1,0 +1,13 @@
+/* Main CSS file that imports all modular CSS files */
+
+/* Import Google Fonts for typography */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Open+Sans:wght@400;500;600&display=swap");
+
+/* Import modular CSS files */
+@import "./css/base.css";
+@import "./css/components.css";
+@import "./css/layout.css";
+@import "./css/pages.css";
+@import "./css/utilities.css";
+@import "./css/maps.css";
+@import "./css/responsive.css";
