@@ -166,7 +166,7 @@ export default class StoryDetailPage {
         "Public Transport": publicTransport
       };
 
-      L.control.layers(baseMaps, overlayMaps, { collapsed: false }).addTo(map);
+      L.control.layers(baseMaps, overlayMaps, { collapsed: true }).addTo(map);
       
       // Add scale
       L.control.scale({ imperial: false, metric: true }).addTo(map);
