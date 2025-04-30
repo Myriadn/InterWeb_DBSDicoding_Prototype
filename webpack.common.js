@@ -10,6 +10,7 @@ module.exports = {
     filename: '[name].bundle.js',
     path: path.resolve(__dirname, 'dist'),
     clean: true,
+    publicPath: '/', // Penting untuk SPA dengan routing
   },
   module: {
     rules: [
@@ -22,6 +23,7 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, 'src/index.html'),
+      filename: 'index.html',
     }),
     new CopyWebpackPlugin({
       patterns: [

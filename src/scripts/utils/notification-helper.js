@@ -199,6 +199,49 @@ const NotificationHelper = {
     return localStorage.getItem('isSubscribed') === 'true';
   },
   
+  // Cek izin notifikasi saat ini
+  getNotificationPermissionStatus() {
+    if (!this.isNotificationSupported()) {
+      return 'not-supported';
+    }
+    return Notification.permission;
+  },
+  
+  // Sinkronisasi status subscription dengan kondisi browser yang sebenarnya
+  async syncSubscriptionStatus() {
+    try {
+      const subscription = await this.checkSubscription();
+      const currentPermission = this.getNotificationPermissionStatus();
+      const isSubscribedInStorage = localStorage.getItem('isSubscribed') === 'true';
+      
+      // Jika subscription tidak ada tapi isSubscribed true di localStorage, update localStorage
+      if (!subscription && isSubscribedInStorage) {
+        localStorage.setItem('isSubscribed', 'false');
+        localStorage.removeItem('pushSubscription');
+        return false;
+      }
+      
+      // Jika izin ditolak tapi isSubscribed true di localStorage, update localStorage
+      if (currentPermission === 'denied' && isSubscribedInStorage) {
+        localStorage.setItem('isSubscribed', 'false');
+        localStorage.removeItem('pushSubscription');
+        return false;
+      }
+      
+      // Jika subscription ada tapi isSubscribed false di localStorage, update localStorage
+      if (subscription && !isSubscribedInStorage) {
+        localStorage.setItem('isSubscribed', 'true');
+        localStorage.setItem('pushSubscription', JSON.stringify(subscription.toJSON()));
+        return true;
+      }
+      
+      return isSubscribedInStorage;
+    } catch (error) {
+      console.error('Gagal menyinkronkan status subscription:', error);
+      return false;
+    }
+  },
+  
   // Konversi URL Base64 ke Uint8Array 
   _urlBase64ToUint8Array(base64String) {
     const padding = '='.repeat((4 - (base64String.length % 4)) % 4);

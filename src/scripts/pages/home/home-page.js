@@ -58,24 +58,54 @@ export default class HomePage {
     const btnSubscription = document.getElementById('btnSubscription');
     if (!btnSubscription) return;
 
-    // Periksa status subscription
-    this._updateSubscriptionButtonUI();
+    // Pertama, sinkronkan status subscription dengan kondisi browser yang sebenarnya
+    NotificationHelper.syncSubscriptionStatus().then(async () => {
+      // Perbarui tampilan UI tombol sesuai status
+      this._updateSubscriptionButtonUI();
+
+      // Periksa izin notifikasi saat ini dan pesan yang ditampilkan
+      const currentPermission = NotificationHelper.getNotificationPermissionStatus();
+      if (currentPermission === 'denied') {
+        this._showNotification('Izin notifikasi ditolak oleh browser. Ubah pengaturan browser Anda untuk mengizinkan notifikasi');
+      }
+    });
 
     // Tambah event listener untuk button
     btnSubscription.addEventListener('click', async () => {
-      const isSubscribed = NotificationHelper.isUserSubscribed();
-      
-      if (isSubscribed) {
-        // User ingin unsubscribe
-        const result = await NotificationHelper.unsubscribePushNotification();
-        this._showNotification(result.message);
+      try {
+        btnSubscription.disabled = true; // Nonaktifkan tombol untuk mencegah multiple klik
+        
+        const isSubscribed = NotificationHelper.isUserSubscribed();
+        
+        if (isSubscribed) {
+          // User ingin unsubscribe
+          const result = await NotificationHelper.unsubscribePushNotification();
+          this._showNotification(result.message);
+        } else {
+          // User ingin subscribe
+          const registration = await NotificationHelper.registerServiceWorker();
+          if (!registration) {
+            this._showNotification('Gagal mendaftarkan service worker');
+            btnSubscription.disabled = false;
+            return;
+          }
+          
+          const result = await NotificationHelper.subscribePushNotification(registration);
+          this._showNotification(result.message);
+          
+          // Jika permintaan izin diabaikan, tampilkan petunjuk
+          if (NotificationHelper.getNotificationPermissionStatus() === 'default') {
+            this._showNotification('Anda mengabaikan permintaan izin notifikasi. Klik tombol lagi untuk mencoba.');
+          }
+        }
+      } catch (error) {
+        console.error("Error in subscription toggle:", error);
+        this._showNotification('Terjadi kesalahan: ' + error.message);
+      } finally {
+        // Perbarui status dan aktifkan tombol kembali
+        await NotificationHelper.syncSubscriptionStatus();
         this._updateSubscriptionButtonUI();
-      } else {
-        // User ingin subscribe
-        const registration = await NotificationHelper.registerServiceWorker();
-        const result = await NotificationHelper.subscribePushNotification(registration);
-        this._showNotification(result.message);
-        this._updateSubscriptionButtonUI();
+        btnSubscription.disabled = false;
       }
     });
   }
@@ -102,16 +132,32 @@ export default class HomePage {
     if (!btnSubscription || !subscriptionStatus) return;
 
     const isSubscribed = NotificationHelper.isUserSubscribed();
+    const notificationPermission = NotificationHelper.getNotificationPermissionStatus();
+    
+    // Reset tombol terlebih dahulu
+    btnSubscription.classList.remove('subscribed', 'btn-subscribe', 'btn-unsubscribe', 'disabled');
+    
+    // Jika browser tidak support notifikasi atau izin ditolak
+    if (notificationPermission === 'not-supported') {
+      btnSubscription.classList.add('disabled');
+      btnSubscription.disabled = true;
+      subscriptionStatus.textContent = 'Notifikasi tidak didukung di browser ini';
+      return;
+    }
+    
+    if (notificationPermission === 'denied') {
+      btnSubscription.classList.add('disabled');
+      btnSubscription.disabled = true;
+      subscriptionStatus.textContent = 'Notifikasi ditolak (Ubah pengaturan browser)';
+      return;
+    }
     
     if (isSubscribed) {
       btnSubscription.classList.add('subscribed');
-      btnSubscription.classList.remove('btn-subscribe');
       btnSubscription.classList.add('btn-unsubscribe');
       subscriptionStatus.textContent = 'Notifikasi Aktif (Klik untuk nonaktifkan)';
     } else {
-      btnSubscription.classList.remove('subscribed');
       btnSubscription.classList.add('btn-subscribe');
-      btnSubscription.classList.remove('btn-unsubscribe');
       subscriptionStatus.textContent = 'Aktifkan Notifikasi Cerita Baru';
     }
   }
@@ -377,27 +423,20 @@ export default class HomePage {
             "Carto": cartoVoyager
           };
 
-          // Kustomisasi ikon marker untuk mengatasi masalah glitching
-          const customIcon = L.icon({
-            iconUrl: '/images/icons/add-x512.png',
-            iconSize: [32, 32],
-            iconAnchor: [16, 32],
-            popupAnchor: [0, -32],
-            shadowUrl: null,
-            shadowSize: null,
-            shadowAnchor: null,
-            className: 'custom-marker-icon'
-          });
-
-          // Add a marker with popup yang sudah dipersiapkan
+          // Ganti marker icon dengan marker bulat biru seperti pada contoh
           const marker = L.marker([lat, lon], {
-            icon: customIcon,
             title: `Location: ${parseFloat(lat).toFixed(4)}, ${parseFloat(lon).toFixed(4)}`,
             alt: 'Story Location',
-            riseOnHover: true
+            icon: L.divIcon({
+              className: 'custom-div-icon',
+              html: '<div class="marker-pin"></div>',
+              iconSize: [30, 30],
+              iconAnchor: [15, 15],
+              popupAnchor: [0, -15]
+            })
           }).addTo(miniMap);
           
-          // Buat konten popup
+          // Buat konten popup sederhana
           const popupContent = `
             <div class="location-popup">
               <strong>Lokasi Story</strong><br>
@@ -549,28 +588,52 @@ export default class HomePage {
           // Tambahkan style untuk marker dan popup
           const mapStyle = document.createElement('style');
           mapStyle.textContent = `
-            .custom-marker-icon {
-              transition: all 0.3s ease;
-              filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+            .custom-div-icon {
+              background-color: #2196F3; /* Warna biru yang lebih sesuai dengan gambar */
+              border-radius: 50%;
+              box-shadow: 0 0 0 2px white; /* Border putih di sekitar marker */
+              border: none;
             }
-            
-            .custom-marker-icon:hover {
-              transform: scale(1.2);
+
+            .marker-pin {
+              width: 100%;
+              height: 100%;
+              border-radius: 50%;
             }
-            
+
+            /* Style untuk popup seperti pada gambar */
             .custom-popup .leaflet-popup-content-wrapper {
-              background-color: rgba(255, 255, 255, 0.9);
-              border-radius: 8px;
-              box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+              background-color: white;
+              border-radius: 4px;
+              box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+              padding: 0;
+              border: none;
             }
             
             .custom-popup .leaflet-popup-tip {
-              background-color: rgba(255, 255, 255, 0.9);
+              background-color: white;
             }
             
             .location-popup {
-              padding: 5px;
-              font-family: 'Poppins', sans-serif;
+              padding: 8px 10px;
+              font-family: Arial, sans-serif;
+            }
+            
+            .location-popup .popup-title {
+              color: #673ab7; /* Warna ungu seperti pada gambar */
+              font-size: 14px;
+              font-weight: bold;
+              margin-bottom: 2px;
+            }
+
+            .location-popup .popup-subtitle {
+              font-size: 13px;
+              color: #444;
+            }
+            
+            /* Sembunyikan close button seperti pada gambar */
+            .leaflet-popup-close-button {
+              display: none;
             }
           `;
           document.head.appendChild(mapStyle);

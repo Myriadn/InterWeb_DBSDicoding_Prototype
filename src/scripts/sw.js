@@ -28,15 +28,15 @@ const STATIC_ASSETS = [
   'https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap',
 ];
 
-// PWA icons - disesuaikan dengan manifest.json
+// PWA icons - sesuai dengan manifest.json
 const PWA_ICONS = [
-  '/images/icons/maskable-icon-x48.png',
-  '/images/icons/maskable-icon-x96.png',
-  '/images/icons/maskable-icon-x192.png',
-  '/images/icons/maskable-icon-x384.png',
-  '/images/icons/maskable-icon-x512.png',
-  '/images/icons/icon-192x192.png',
-  '/images/icons/icon-512x512.png'
+  '/images/icons/maskable_icon_x48.png',
+  '/images/icons/maskable_icon_x72.png',
+  '/images/icons/maskable_icon_x96.png',
+  '/images/icons/maskable_icon_x128.png',
+  '/images/icons/maskable_icon_x192.png',
+  '/images/icons/maskable_icon_x384.png',
+  '/images/icons/maskable_icon_x512.png'
 ];
 
 // Install event - cache App Shell and static assets
@@ -152,6 +152,12 @@ self.addEventListener('fetch', (event) => {
   
   // Handle API requests - Network First with timeout
   if (isApiRequest(url.href)) {
+    // Untuk permintaan non-GET (POST, PUT, DELETE), langsung gunakan fetch tanpa caching
+    if (request.method !== 'GET') {
+      event.respondWith(fetch(request));
+      return;
+    }
+
     event.respondWith(
       Promise.race([
         // Network request with timeout
@@ -165,7 +171,7 @@ self.addEventListener('fetch', (event) => {
                 return resolve(response);
               }
               
-              // Clone and cache the response for offline use
+              // Clone and cache the response for offline use (only for GET requests)
               const clonedResponse = response.clone();
               caches.open(CONTENT_CACHE)
                 .then(cache => cache.put(request, clonedResponse));
@@ -240,9 +246,9 @@ self.addEventListener('fetch', (event) => {
             .catch(() => {
               // Return placeholder image if the image is unavailable
               if (request.url.includes('.svg')) {
-                return caches.match('/images/icons/icon-72x72.png');
+                return caches.match('/images/icons/maskable_icon_x96.png');
               } else {
-                return caches.match('/images/icons/icon-192x192.png');
+                return caches.match('/images/icons/maskable_icon_x192.png');
               }
             });
         })
