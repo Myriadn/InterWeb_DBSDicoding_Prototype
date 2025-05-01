@@ -1,12 +1,28 @@
-# App Starter Project with Webpack
+# Myriadn Story App
 
-Proyek ini adalah setup dasar untuk aplikasi web yang menggunakan webpack untuk proses bundling, Babel untuk transpile JavaScript, serta mendukung proses build dan serving aplikasi.
+![Myriadn Story App Logo](/src/public/images/logo.png)
 
-## Table of Contents
+Myriadn Story App adalah platform berbagi cerita yang memungkinkan pengguna untuk membagikan momen dan pengalaman mereka melalui foto dan teks. Aplikasi ini menawarkan pengalaman pengguna yang cepat dan responsif dengan dukungan Progressive Web App (PWA).
 
-- [Getting Started](#getting-started)
-- [Scripts](#scripts)
-- [Project Structure](#project-structure)
+## Fitur Utama
+
+- **Berbagi Cerita**: Unggah foto dan deskripsi untuk berbagi momen spesial Anda.
+- **Kamera Terintegrasi**: Ambil foto langsung dari aplikasi menggunakan kamera perangkat.
+- **Lokasi dengan Peta**: Tandai lokasi cerita Anda pada peta interaktif.
+- **Simpan Cerita**: Simpan cerita yang menarik untuk dibaca nanti.
+- **Notifikasi**: Dapatkan pemberitahuan saat ada cerita baru.
+- **Mode Offline**: Akses cerita tersimpan bahkan saat tidak ada koneksi internet.
+- **PWA**: Instal aplikasi di perangkat untuk akses lebih cepat.
+
+## Tangkapan Layar
+
+![Screenshot 1](/src/public/images/screenshots/MyriadnStoryApp_001.png)
+![Screenshot 2](/src/public/images/screenshots/MyriadnStoryApp_002.png)
+![Screenshot 3](/src/public/images/screenshots/MyriadnStoryApp_003.png)
+
+## Demo
+
+Anda dapat mengakses demo aplikasi di [https://myriadnstoryapp.netlify.app/](https://myriadnstoryapp.netlify.app/)
 
 ## Getting Started
 
@@ -17,9 +33,8 @@ Proyek ini adalah setup dasar untuk aplikasi web yang menggunakan webpack untuk 
 
 ### Installation
 
-1. Download starter project [di sini](https://raw.githubusercontent.com/dicodingacademy/a219-web-intermediate-labs/099-shared-files/starter-project-with-webpack.zip).
-2. Lakukan unzip file.
-3. Pasang seluruh dependencies dengan perintah berikut.
+1. Clone repositori ini atau download kode sumber.
+2. Pasang seluruh dependencies dengan perintah berikut.
    ```shell
    npm install
    ```
@@ -44,25 +59,38 @@ Proyek ini adalah setup dasar untuk aplikasi web yang menggunakan webpack untuk 
   ```
   Script ini menggunakan [`http-server`](https://www.npmjs.com/package/http-server) untuk menyajikan konten dari direktori `dist`.
 
+## Teknologi
+
+- HTML, CSS, JavaScript (Vanilla)
+- Webpack untuk bundling
+- Leaflet untuk peta interaktif
+- IndexedDB untuk penyimpanan lokal
+- Service Worker untuk mode offline dan PWA
+- Push API untuk notifikasi
+
 ## Project Structure
 
-Proyek starter ini dirancang agar kode tetap modular dan terorganisir.
-
 ```text
-starter-project/
+myriadn-story-app/
 ├── dist/                   # Compiled files for production
 ├── src/                    # Source project files
 │   ├── public/             # Public files
+│   │   ├── app.webmanifest # PWA manifest
+│   │   ├── offline.html    # Halaman offline
+│   │   ├── images/         # Gambar dan ikon
 │   ├── scripts/            # Source JavaScript files
-│   │   └── index.js        # Main JavaScript entry file
+│   │   ├── data/           # API dan data handling
+│   │   ├── pages/          # Komponen halaman
+│   │   ├── routes/         # Router
+│   │   ├── utils/          # Utility functions
+│   │   ├── sw.js           # Service Worker
 │   ├── styles/             # Source CSS files
-│   │   └── styles.css      # Main CSS file
-│   └── index.html/         # Main HTML file
-├── package.json            # Project metadata and dependencies
-├── package-lock.json       # Project metadata and dependencies
-├── README.md               # Project documentation
-├── STUDENT.txt             # Student information
+│   └── index.html          # Main HTML file
 ├── webpack.common.js       # Webpack common configuration
 ├── webpack.dev.js          # Webpack development configuration
 └── webpack.prod.js         # Webpack production configuration
 ```
+
+## Lisensi
+
+© 2025 Myriadn Story App - Semua Hak Dilindungi
