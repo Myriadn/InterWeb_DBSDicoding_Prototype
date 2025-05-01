@@ -91,6 +91,3 @@ myriadn-story-app/
 └── webpack.prod.js         # Webpack production configuration
 ```
 
-## Lisensi
-
-© 2025 Myriadn Story App - Semua Hak Dilindungi
