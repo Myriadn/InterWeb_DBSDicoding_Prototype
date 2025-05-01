@@ -5,6 +5,7 @@ import AddStoryPage from "../pages/story/add-story-page";
 import StoryDetailPage from "../pages/story/story-detail-page";
 import AboutPage from "../pages/about/about-page";
 import SavedStoriesPage from "../pages/saved-stories/saved-stories-page";
+import NotFoundPage from "../pages/not-found/not-found-page";
 
 const routes = {
   "/": new HomePage(),
@@ -17,3 +18,6 @@ const routes = {
 };
 
 export default routes;
+
+// Export for Not Found page
+export const notFoundRoute = new NotFoundPage();

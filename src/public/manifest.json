@@ -1,11 +1,18 @@
 {
   "name": "Myriadn Story App",
   "short_name": "Story App",
-  "description": "Aplikasi berbagi cerita dengan foto",
+  "description": "Aplikasi berbagi cerita dengan foto dan lokasi",
   "start_url": "/index.html",
+  "id": "/index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#3498db",
+  "categories": ["social", "photos", "storytelling"],
+  "orientation": "any",
+  "dir": "ltr",
+  "lang": "id",
+  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/images/icons/maskable_icon_x48.png",
@@ -49,5 +56,83 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "Tambah Story Baru",
+      "short_name": "Tambah Story",
+      "description": "Tambahkan cerita baru dengan foto",
+      "url": "/#/add-story",
+      "icons": [
+        {
+          "src": "/images/icons/add-x512.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Story Tersimpan",
+      "short_name": "Tersimpan",
+      "description": "Lihat cerita yang tersimpan",
+      "url": "/#/saved-stories",
+      "icons": [
+        {
+          "src": "/images/icons/bookmark-x512.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/images/screenshots/MyriadnStoryApp_001.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Halaman Beranda Aplikasi Story - Desktop"
+    },
+    {
+      "src": "/images/screenshots/MyriadnStoryApp_002.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Detail Story - Desktop"
+    },
+    {
+      "src": "/images/screenshots/MyriadnStoryApp_003.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "platform": "narrow",
+      "label": "Story App pada Perangkat Mobile"
+    }
+  ],
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": ["navigate-existing", "auto"]
+  },
+  "edge_side_panel": {
+    "preferred_width": 480
+  },
+  "scope": "/",
+  "share_target": {
+    "action": "/#/add-story",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "description",
+      "url": "link"
+    }
+  },
+  "file_handlers": [
+    {
+      "action": "/#/add-story",
+      "accept": {
+        "image/*": [".jpg", ".jpeg", ".png", ".webp"]
+      }
+    }
+  ],
+  "related_applications": []
 }

@@ -1,4 +1,4 @@
-import routes from "../routes/routes";
+import routes, { notFoundRoute } from "../routes/routes";
 import { getActiveRoute } from "../routes/url-parser";
 import { setupAccessibility } from "../utils";
 
@@ -188,7 +188,7 @@ class App {
     this._stopMediaStreams();
 
     const url = getActiveRoute();
-    const page = routes[url];
+    const page = routes[url] || notFoundRoute; // Use Not Found page if route doesn't exist
 
     try {
       // Don't reload the page, just update content
