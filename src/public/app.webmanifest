@@ -90,21 +90,24 @@
       "src": "/images/screenshots/MyriadnStoryApp_001.png",
       "sizes": "1280x720",
       "type": "image/png",
-      "platform": "wide",
+      "form_factor": "wide",
+      "platform": "windows",
       "label": "Halaman Beranda Aplikasi Story - Desktop"
     },
     {
       "src": "/images/screenshots/MyriadnStoryApp_002.png",
       "sizes": "1280x720",
       "type": "image/png",
-      "platform": "wide",
+      "form_factor": "wide",
+      "platform": "windows",
       "label": "Detail Story - Desktop"
     },
     {
       "src": "/images/screenshots/MyriadnStoryApp_003.png",
       "sizes": "390x844",
       "type": "image/png",
-      "platform": "narrow",
+      "form_factor": "narrow",
+      "platform": "android",
       "label": "Story App pada Perangkat Mobile"
     }
   ],

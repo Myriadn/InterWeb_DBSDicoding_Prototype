@@ -24,7 +24,7 @@ precacheAndRoute(self.__WB_MANIFEST);
 const additionalAppShellFiles = [
   '/offline.html',
   '/favicon.png',
-  '/manifest.json',
+  '/app.webmanifest',
   '/images/logo.png',
 ];
 
@@ -37,7 +37,7 @@ const STATIC_ASSETS = [
   'https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap',
 ];
 
-// PWA icons - sesuai dengan manifest.json
+// PWA icons - sesuai dengan app.webmanifest
 const PWA_ICONS = [
   '/images/icons/maskable_icon_x48.png',
   '/images/icons/maskable_icon_x72.png',
