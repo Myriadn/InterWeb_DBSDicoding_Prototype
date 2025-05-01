@@ -52,16 +52,19 @@ class NavigationHelper {
     // Menambahkan menu navigasi untuk user yang sudah login
     navList.innerHTML = `
       <li>
-        <a href="#/" aria-label="Beranda"><i class="fas fa-home"></i> Beranda</a>
+        <a href="#/" aria-label="Beranda" title="Beranda"><i class="fas fa-home"></i></a>
       </li>
       <li>
-        <a href="#/add-story" aria-label="Tambah Story"><i class="fas fa-plus"></i> Tambah Story</a>
+        <a href="#/add-story" aria-label="Tambah Story" title="Tambah Story"><i class="fas fa-plus"></i></a>
       </li>
       <li>
-        <a href="#/about" aria-label="Tentang Aplikasi"><i class="fas fa-globe"></i> Tentang Aplikasi</a>
+        <a href="#/saved-stories" aria-label="Story Tersimpan" title="Story Tersimpan"><i class="fas fa-bookmark"></i></a>
       </li>
       <li>
-        <a href="#" id="logout-button" aria-label="Logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        <a href="#/about" aria-label="Tentang Aplikasi" title="Tentang Aplikasi"><i class="fas fa-globe"></i></a>
+      </li>
+      <li>
+        <a href="#" id="logout-button" aria-label="Logout" title="Logout"><i class="fas fa-sign-out-alt"></i></a>
       </li>
     `;
 

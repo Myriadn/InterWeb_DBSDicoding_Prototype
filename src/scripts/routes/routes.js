@@ -4,6 +4,7 @@ import RegisterPage from "../pages/auth/register-page";
 import AddStoryPage from "../pages/story/add-story-page";
 import StoryDetailPage from "../pages/story/story-detail-page";
 import AboutPage from "../pages/about/about-page";
+import SavedStoriesPage from "../pages/saved-stories/saved-stories-page";
 
 const routes = {
   "/": new HomePage(),
@@ -12,6 +13,7 @@ const routes = {
   "/add-story": new AddStoryPage(),
   "/story/:id": new StoryDetailPage(),
   "/about": new AboutPage(),
+  "/saved-stories": new SavedStoriesPage(),
 };
 
 export default routes;

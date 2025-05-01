@@ -131,8 +131,6 @@
 .story-item img {
   max-width: 100%;
   height: auto;
-  background-color: #f1f1f1;
-  min-height: 200px;
 }
 
 /* Fallback styling for offline maps */

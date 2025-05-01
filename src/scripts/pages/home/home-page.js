@@ -2,11 +2,13 @@
 import HomePresenter from "./home-presenter";
 import NavigationHelper from "../../utils/navigation-helper";
 import NotificationHelper from "../../utils/notification-helper";
+import IdbHelper from "../../utils/idb/idb-helper";
 
 export default class HomePage {
   constructor() {
     this.presenter = new HomePresenter(this);
     this._isOnline = navigator.onLine;
+    this._savedStoryIds = new Set(); // To track saved stories
   }
 
   async render() {
@@ -49,6 +51,9 @@ export default class HomePage {
     
     // Setup online/offline handler
     this._setupOnlineOfflineHandler();
+
+    // Get all saved story IDs for displaying save/unsave status
+    await this._loadSavedStoryIds();
 
     // Load stories
     this.presenter.loadStories();
@@ -163,21 +168,32 @@ export default class HomePage {
   }
 
   _showNotification(message) {
-    // Tambahkan elemen notifikasi jika belum ada
-    let notificationEl = document.querySelector('.toast-notification');
-    if (!notificationEl) {
-      notificationEl = document.createElement('div');
-      notificationEl.className = 'toast-notification hidden';
-      document.body.appendChild(notificationEl);
-    }
+    try {
+      // Tambahkan elemen notifikasi jika belum ada
+      let notificationEl = document.querySelector('.toast-notification');
+      if (!notificationEl) {
+        notificationEl = document.createElement('div');
+        notificationEl.className = 'toast-notification hidden';
+        document.body.appendChild(notificationEl);
+      }
 
-    notificationEl.textContent = message;
-    notificationEl.classList.remove('hidden');
-    
-    // Hilangkan setelah 3 detik
-    setTimeout(() => {
-      notificationEl.classList.add('hidden');
-    }, 3000);
+      // Pastikan elemen sudah di-append ke DOM sebelum dimanipulasi
+      setTimeout(() => {
+        if (notificationEl) {
+          notificationEl.textContent = message;
+          notificationEl.classList.remove('hidden');
+          
+          // Hilangkan setelah 3 detik
+          setTimeout(() => {
+            if (notificationEl) {
+              notificationEl.classList.add('hidden');
+            }
+          }, 3000);
+        }
+      }, 0);
+    } catch (error) {
+      console.error('Error showing notification:', error);
+    }
   }
 
   displayStories(stories) {
@@ -194,34 +210,50 @@ export default class HomePage {
 
     container.innerHTML = stories
       .map(
-        (story) => `
-      <div class="story-item">
-        <img src="${story.photoUrl}" 
-             alt="Foto oleh ${story.name}: ${story.description}"
-             loading="lazy"
-             onerror="this.onerror=null; this.src='/images/icons/icon-192x192.png'; this.alt='Gambar tidak tersedia saat offline';">
-        <h2>${story.name}</h2>
-        <p>${story.description}</p>
-        <p class="created-at"><i class="fas fa-calendar"></i> ${this.formatDate(
-          story.createdAt
-        )}</p>
-        ${
-          story.lat && story.lon
-            ? this._isOnline 
-              ? `<div class="mini-map" 
-                   data-lat="${story.lat}" 
-                   data-lon="${story.lon}"></div>`
-              : `<div class="offline-map-placeholder">
-                   <i class="fas fa-map-marker-alt"></i> Lokasi: ${story.lat.toFixed(4)}, ${story.lon.toFixed(4)}
-                   <p>Peta tidak tersedia saat offline</p>
-                 </div>`
-            : ""
+        (story) => {
+          // Check if this story is already saved
+          const isSaved = this._savedStoryIds.has(story.id);
+          const saveButtonText = isSaved ? 'Hapus dari Tersimpan' : 'Simpan Story';
+          const saveButtonIcon = isSaved ? 'fa-trash' : 'fa-bookmark';
+          const saveButtonClass = isSaved ? 'unsave-button' : 'save-button';
+          
+          return `
+            <div class="story-item">
+              ${isSaved ? `
+                <div class="saved-indicator">
+                  <i class="fas fa-bookmark"></i>
+                </div>
+              ` : ''}
+              <img src="${story.photoUrl}" 
+                  alt="Foto oleh ${story.name}: ${story.description}"
+                  loading="lazy"
+                  onerror="this.onerror=null; this.src='/images/icons/icon-192x192.png'; this.alt='Gambar tidak tersedia saat offline';">
+              <h2>${story.name}</h2>
+              <p>${story.description}</p>
+              <p class="created-at"><i class="fas fa-calendar"></i> ${this.formatDate(
+                story.createdAt
+              )}</p>
+              ${
+                story.lat && story.lon
+                  ? this._isOnline 
+                    ? `<div class="mini-map" 
+                        data-lat="${story.lat}" 
+                        data-lon="${story.lon}"></div>`
+                    : `<div class="offline-map-placeholder">
+                        <i class="fas fa-map-marker-alt"></i> Lokasi: ${story.lat.toFixed(4)}, ${story.lon.toFixed(4)}
+                        <p>Peta tidak tersedia saat offline</p>
+                      </div>`
+                  : ""
+              }
+              <div class="story-action">
+                <a href="#/story/${story.id}" class="detail-button">Lihat Detail</a>
+                <button class="${saveButtonClass}" data-id="${story.id}" data-saved="${isSaved}">
+                  <i class="fas ${saveButtonIcon}"></i> ${saveButtonText}
+                </button>
+              </div>
+            </div>
+          `;
         }
-        <div class="story-action">
-          <a href="#/story/${story.id}" class="detail-button">Lihat Detail</a>
-        </div>
-      </div>
-    `
       )
       .join("");
 
@@ -267,7 +299,8 @@ export default class HomePage {
       .story-action {
         margin-top: 16px;
         display: flex;
-        justify-content: flex-end;
+        justify-content: space-between;
+        gap: 10px;
       }
       
       .detail-button {
@@ -285,6 +318,54 @@ export default class HomePage {
         background-color: #2980b9;
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      }
+
+      .save-button, .unsave-button {
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        border: none;
+      }
+      
+      .save-button {
+        background-color: #27ae60;
+        color: white;
+      }
+      
+      .save-button:hover {
+        background-color: #219853;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      }
+      
+      .unsave-button {
+        background-color: #e74c3c;
+        color: white;
+      }
+      
+      .unsave-button:hover {
+        background-color: #c0392b;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      }
+      
+      .saved-indicator {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background-color: rgba(52, 152, 219, 0.9);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 5px;
       }
 
       .notification-container {
@@ -347,12 +428,148 @@ export default class HomePage {
         opacity: 0;
         transform: translate(-50%, 20px);
       }
+      
+      .offline-map-placeholder {
+        background-color: #f8f9fa;
+        border: 1px dashed #ccc;
+        padding: 15px;
+        border-radius: 6px;
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      
+      .offline-map-placeholder i {
+        color: #3498db;
+        margin-right: 5px;
+      }
+      
+      .offline-map-placeholder p {
+        margin-top: 10px;
+        font-size: 0.9em;
+        color: #666;
+      }
     `;
     document.head.appendChild(styleElement);
+
+    // Add event listeners for save/unsave buttons
+    this._setupSaveButtons();
 
     // Inisialisasi peta SETELAH DOM di-update jika online
     if (this._isOnline) {
       this.initMiniMaps();
+    }
+  }
+
+  // Setup save/unsave buttons functionality
+  _setupSaveButtons() {
+    try {
+      // Tunggu sesaat untuk memastikan DOM telah sepenuhnya dirender
+      setTimeout(() => {
+        // Add event listeners for save buttons
+        document.querySelectorAll('.save-button, .unsave-button').forEach(button => {
+          button.addEventListener('click', async (e) => {
+            try {
+              const storyId = e.currentTarget.dataset.id;
+              const isSaved = e.currentTarget.dataset.saved === 'true';
+              
+              // Get the story information from the API or the DOM
+              const storyElement = e.currentTarget.closest('.story-item');
+              if (!storyElement) return;
+              
+              // Dapatkan data dengan cara yang lebih defensif
+              let storyName = '';
+              let storyDescription = '';
+              let storyImage = '';
+              let createdAt = '';
+              
+              const nameElement = storyElement.querySelector('h2');
+              if (nameElement) storyName = nameElement.textContent;
+              
+              const descElement = storyElement.querySelector('p:not(.created-at)');
+              if (descElement) storyDescription = descElement.textContent;
+              
+              const imgElement = storyElement.querySelector('img');
+              if (imgElement) storyImage = imgElement.src;
+              
+              const dateElement = storyElement.querySelector('.created-at');
+              if (dateElement) createdAt = dateElement.textContent;
+              
+              // Get map data if available
+              const mapElement = storyElement.querySelector('.mini-map');
+              let lat = null;
+              let lon = null;
+              
+              if (mapElement) {
+                if (mapElement.dataset.lat) lat = parseFloat(mapElement.dataset.lat);
+                if (mapElement.dataset.lon) lon = parseFloat(mapElement.dataset.lon);
+              }
+              
+              if (isSaved) {
+                // Delete story from IndexedDB
+                await IdbHelper.deleteSavedStory(storyId);
+                this._showNotification('Story berhasil dihapus dari tersimpan');
+                
+                // Update button (dengan handling yang lebih defensif)
+                if (e.currentTarget) {
+                  e.currentTarget.innerHTML = '<i class="fas fa-bookmark"></i> Simpan Story';
+                  e.currentTarget.classList.remove('unsave-button');
+                  e.currentTarget.classList.add('save-button');
+                  e.currentTarget.dataset.saved = 'false';
+                }
+                
+                // Remove saved indicator
+                const savedIndicator = storyElement.querySelector('.saved-indicator');
+                if (savedIndicator) {
+                  savedIndicator.remove();
+                }
+                
+                // Remove ID from saved IDs set
+                this._savedStoryIds.delete(storyId);
+                
+              } else {
+                // Create story object to save
+                const story = {
+                  id: storyId,
+                  name: storyName,
+                  description: storyDescription,
+                  photoUrl: storyImage,
+                  createdAt: new Date().toISOString(), // Since we don't have actual date from DOM
+                  lat: lat,
+                  lon: lon
+                };
+                
+                // Save story to IndexedDB
+                await IdbHelper.saveStory(story);
+                this._showNotification('Story berhasil disimpan');
+                
+                // Update button (dengan handling yang lebih defensif)
+                if (e.currentTarget) {
+                  e.currentTarget.innerHTML = '<i class="fas fa-trash"></i> Hapus dari Tersimpan';
+                  e.currentTarget.classList.remove('save-button');
+                  e.currentTarget.classList.add('unsave-button');
+                  e.currentTarget.dataset.saved = 'true';
+                }
+                
+                // Add saved indicator
+                if (!storyElement.querySelector('.saved-indicator')) {
+                  const savedIndicator = document.createElement('div');
+                  savedIndicator.className = 'saved-indicator';
+                  savedIndicator.innerHTML = '<i class="fas fa-bookmark"></i>';
+                  storyElement.prepend(savedIndicator);
+                }
+                
+                // Add ID to saved IDs set
+                this._savedStoryIds.add(storyId);
+              }
+            } catch (error) {
+              console.error('Error handling save/unsave action:', error);
+              this._showNotification('Terjadi kesalahan saat menyimpan/menghapus story');
+            }
+          });
+        });
+      }, 100); // Memberikan sedikit delay untuk DOM rendering
+    } catch (error) {
+      console.error('Error setting up save buttons:', error);
     }
   }
 
@@ -423,16 +640,15 @@ export default class HomePage {
             "Carto": cartoVoyager
           };
 
-          // Ganti marker icon dengan marker bulat biru seperti pada contoh
+          // Ganti marker icon dengan icon map marker dari file
           const marker = L.marker([lat, lon], {
             title: `Location: ${parseFloat(lat).toFixed(4)}, ${parseFloat(lon).toFixed(4)}`,
             alt: 'Story Location',
-            icon: L.divIcon({
-              className: 'custom-div-icon',
-              html: '<div class="marker-pin"></div>',
-              iconSize: [30, 30],
-              iconAnchor: [15, 15],
-              popupAnchor: [0, -15]
+            icon: L.icon({
+              iconUrl: '/images/icons/map_marker_x32.png',
+              iconSize: [32, 32],
+              iconAnchor: [16, 32],
+              popupAnchor: [0, -28],
             })
           }).addTo(miniMap);
           
@@ -680,6 +896,18 @@ export default class HomePage {
       `;
     } else {
       container.innerHTML = `<p class="error">⛔ ${message}</p>`;
+    }
+  }
+
+  // New method to load saved story IDs
+  async _loadSavedStoryIds() {
+    try {
+      const savedStories = await IdbHelper.getAllSavedStories();
+      this._savedStoryIds = new Set(savedStories.map(story => story.id));
+      return this._savedStoryIds;
+    } catch (error) {
+      console.error('Error loading saved story IDs:', error);
+      return new Set();
     }
   }
 }

@@ -87,21 +87,25 @@ header {
   align-items: center;
   width: 100%;
   padding: 0 var(--spacing-md);
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .brand-name {
   font-family: var(--font-family-primary);
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: white;
   text-decoration: none;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
   transition: all var(--transition-speed) var(--transition-timing);
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  z-index: 101; /* Ensure brand name stays above mobile nav */
+  z-index: 101;
+  white-space: nowrap;
+  flex-shrink: 0; /* Prevent brand name from shrinking */
 }
 
 .brand-name:hover {
@@ -124,6 +128,9 @@ header {
 .navigation-drawer {
   display: flex;
   align-items: center;
+  margin-left: auto; /* Pindahkan navigasi ke kanan */
+  flex-grow: 1; /* Ambil ruang yang tersedia */
+  justify-content: flex-end; /* Ratakan item-item ke kanan */
 }
 
 .nav-list {
@@ -132,6 +139,8 @@ header {
   gap: var(--spacing-sm);
   margin: 0;
   padding: 0;
+  flex-wrap: wrap; /* Allow items to wrap if needed */
+  justify-content: flex-end; /* Align items to the right */
 }
 
 .nav-list li {
@@ -141,62 +150,73 @@ header {
 .nav-list li a {
   color: white;
   text-decoration: none;
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--spacing-sm);
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  justify-content: center;
   font-family: var(--font-family-primary);
   font-weight: 500;
   transition: all 0.25s ease;
-  border-radius: var(--border-radius-md);
+  border-radius: 50%;
   position: relative;
   overflow: hidden;
   z-index: 1;
+  width: 40px;
+  height: 40px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
-/* Menu item hover effect with subtle underline and glow */
+/* Menu item hover effect untuk ikon */
 .nav-list li a::after {
   content: '';
   position: absolute;
-  bottom: 0;
+  bottom: -2px;
   left: 50%;
   width: 0;
-  height: 2px;
-  background: rgba(255, 255, 255, 0.8);
+  height: 3px;
+  background: var(--secondary-light);
   transition: width 0.3s ease, left 0.3s ease;
+  border-radius: 3px;
 }
 
 .nav-list li a:hover {
   color: white;
   text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
-  transform: translateY(-1px);
-}
-
-.nav-list li a:hover::after {
-  width: 70%;
-  left: 15%;
-}
-
-.nav-list li.active a {
-  background: rgba(255, 255, 255, 0.15);
-  color: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.nav-list li.active a::after {
-  width: 70%;
-  left: 15%;
-  background: var(--secondary-light);
-  height: 2px;
-}
-
-.nav-list li i {
-  font-size: 1rem;
-  transition: transform 0.3s ease;
+  transform: translateY(-2px);
+  background-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .nav-list li a:hover i {
-  transform: translateY(-2px);
+  transform: scale(1.15);
+}
+
+.nav-list li a:hover::after {
+  width: 40%;
+  left: 30%;
+}
+
+.nav-list li.active a {
+  background: var(--secondary-color);
+  color: white;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.nav-list li.active a::after {
+  width: 40%;
+  left: 30%;
+  background: white;
+  height: 3px;
+}
+
+.nav-list li i {
+  font-size: 1.1rem;
+  transition: transform 0.3s ease;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Mobile navigation */
@@ -491,9 +511,21 @@ header {
     gap: var(--spacing-xs); /* Reduce gap between navigation items */
   }
   
+  /* Brand name adjustment for medium screens */
+  .brand-name {
+    font-size: 1.3rem;
+    letter-spacing: 0;
+    margin-right: var(--spacing-md);
+  }
+  
   .nav-list li a {
-    padding: var(--spacing-xs) var(--spacing-sm); /* Reduce padding on nav items */
-    font-size: 0.9rem; /* Slightly smaller font size */
+    width: 36px;
+    height: 36px;
+    padding: var(--spacing-xs);
+  }
+  
+  .nav-list li i {
+    font-size: 1rem;
   }
   
   /* Adjust user actions for better fit */
@@ -507,17 +539,52 @@ header {
   }
 }
 
+/* Tambahan penyesuaian untuk layar berukuran 1001px-1200px */
+@media screen and (min-width: 1001px) and (max-width: 1200px) {
+  .nav-list {
+    gap: var(--spacing-sm);
+  }
+  
+  .nav-list li a {
+    padding: var(--spacing-sm) var(--spacing-sm);
+    font-size: 0.95rem;
+  }
+}
+
 @media screen and (max-width: 768px) {
   /* Mobile header adjustments */
   .main-header {
     padding: 0 var(--spacing-sm);
   }
+  
+  /* Brand name pada mobile */
+  .brand-name {
+    font-size: 1.2rem;
+    max-width: 65%; /* Batasi lebar brand name pada mobile */
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
-  /* Remove the conflicting mobile navigation styles */
+  /* Navigation drawer styling for mobile */
   .navigation-drawer {
-    /* These styles will be managed in responsive.css */
     position: fixed;
+    right: -280px; /* Hide offscreen initially */
+    top: 0;
+    height: 100vh;
+    width: 280px;
+    background: linear-gradient(135deg, #182848 0%, #4b6cb7 100%);
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     z-index: 99;
+    border-left: 4px solid var(--accent-color);
+    overflow-y: auto;
+    padding-top: 70px; /* Space for fixed header */
+    margin-left: 0; /* Reset auto margin */
+    justify-content: flex-start; /* Reset justify-content */
+  }
+  
+  .navigation-drawer.open {
+    right: 0;
   }
   
   .drawer-button {
@@ -528,17 +595,40 @@ header {
   .nav-list {
     flex-direction: column;
     width: 100%;
+    padding: var(--spacing-md);
+    align-items: center;
   }
   
   .nav-list li {
-    width: 100%;
+    width: 80%;
+    margin-bottom: var(--spacing-md);
   }
   
   .nav-list li a {
-    padding: var(--spacing-md);
     width: 100%;
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-md);
+    background-color: rgba(255, 255, 255, 0.1);
     justify-content: center;
-    margin-bottom: var(--spacing-xs);
+    height: auto;
+    gap: var(--spacing-sm);
+  }
+  
+  .nav-list li a::after {
+    display: none;
+  }
+  
+  .nav-list li i {
+    font-size: 1.2rem;
+    margin: 0;
+  }
+  
+  /* Tampilkan teks pada mobile */
+  .nav-list li a::before {
+    content: attr(title);
+    margin-left: var(--spacing-sm);
+    font-size: 1rem;
+    font-weight: 500;
   }
   
   /* User actions */
@@ -567,10 +657,31 @@ header {
     padding: 0 var(--spacing-xl);
   }
   
+  /* Brand name adjustment for larger screens */
+  .brand-name {
+    font-size: 1.5rem;
+    letter-spacing: 0.3px;
+    /* Provide adequate space between brand name and navigation */
+    margin-right: var(--spacing-lg);
+  }
+  
   /* Add subtle animations for desktop */
   .nav-list li a {
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
                 box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
                 color 0.4s ease;
+  }
+}
+
+/* For screen sizes below 480px (extra small) */
+@media screen and (max-width: 480px) {
+  .brand-name {
+    font-size: 1.1rem;
+    max-width: 60%;
+  }
+  
+  .drawer-button {
+    padding: var(--spacing-xs);
+    font-size: 1.3rem;
   }
 }

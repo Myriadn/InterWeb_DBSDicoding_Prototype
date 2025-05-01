@@ -1,10 +1,12 @@
 import StoryDetailPresenter from "./story-detail-presenter";
 import { showFormattedDate } from "../../utils";
 import NavigationHelper from "../../utils/navigation-helper";
+import IdbHelper from "../../utils/idb/idb-helper";
 
 export default class StoryDetailPage {
   constructor() {
     this.presenter = new StoryDetailPresenter(this);
+    this._isStorySaved = false;
   }
   
   async render() {
@@ -26,9 +28,17 @@ export default class StoryDetailPage {
     await this.presenter.loadStoryDetail();
   }
 
-  displayStoryDetail(story) {
+  async displayStoryDetail(story) {
     const container = document.querySelector('.story-detail');
     if (!container) return;
+
+    // Check if story is already saved
+    this._isStorySaved = await IdbHelper.isStorySaved(story.id);
+    
+    // Prepare save/unsave button text and icon
+    const saveButtonText = this._isStorySaved ? 'Hapus dari Tersimpan' : 'Simpan Story';
+    const saveButtonIcon = this._isStorySaved ? 'fa-trash' : 'fa-bookmark';
+    const saveButtonClass = this._isStorySaved ? 'btn-unsave' : 'btn-save';
 
     container.innerHTML = `
       <div class="detail-header">
@@ -72,8 +82,149 @@ export default class StoryDetailPage {
         <a href="#/" class="btn-back">
           <i class="fas fa-arrow-left"></i> Back to Stories
         </a>
+        <button id="save-story-button" class="${saveButtonClass}">
+          <i class="fas ${saveButtonIcon}"></i> ${saveButtonText}
+        </button>
       </div>
     `;
+
+    // Add CSS styles for save button
+    const styleElement = document.createElement('style');
+    styleElement.textContent = `
+      .story-actions {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+      }
+      
+      .btn-save, .btn-unsave {
+        padding: 10px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        border: none;
+      }
+      
+      .btn-save {
+        background-color: #3498db;
+        color: white;
+      }
+      
+      .btn-save:hover {
+        background-color: #2980b9;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      }
+      
+      .btn-unsave {
+        background-color: #e74c3c;
+        color: white;
+      }
+      
+      .btn-unsave:hover {
+        background-color: #c0392b;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      }
+      
+      .toast-notification {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #2ecc71;
+        color: white;
+        padding: 15px 25px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 1000;
+        opacity: 1;
+        transition: opacity 0.3s ease, transform 0.3s ease;
+      }
+
+      .toast-notification.hidden {
+        opacity: 0;
+        transform: translate(-50%, 20px);
+      }
+    `;
+    document.head.appendChild(styleElement);
+    
+    // Add event listener for save/unsave button
+    this._setupSaveButtonListener(story);
+
+    // Initialize map if coordinates are available
+    if (story.lat && story.lon) {
+      this.initMap(story);
+    }
+  }
+
+  _setupSaveButtonListener(story) {
+    const saveButton = document.getElementById('save-story-button');
+    if (!saveButton) return;
+    
+    saveButton.addEventListener('click', async () => {
+      try {
+        if (this._isStorySaved) {
+          // If story is already saved, remove it from IndexedDB
+          await IdbHelper.deleteSavedStory(story.id);
+          this._showNotification('Story berhasil dihapus dari tersimpan');
+          
+          // Update button to "Save Story"
+          saveButton.innerHTML = '<i class="fas fa-bookmark"></i> Simpan Story';
+          saveButton.classList.remove('btn-unsave');
+          saveButton.classList.add('btn-save');
+          
+          this._isStorySaved = false;
+        } else {
+          // If story is not saved, save it to IndexedDB
+          await IdbHelper.saveStory(story);
+          this._showNotification('Story berhasil disimpan');
+          
+          // Update button to "Unsave Story"
+          saveButton.innerHTML = '<i class="fas fa-trash"></i> Hapus dari Tersimpan';
+          saveButton.classList.remove('btn-save');
+          saveButton.classList.add('btn-unsave');
+          
+          this._isStorySaved = true;
+        }
+      } catch (error) {
+        console.error('Error toggling story save state:', error);
+        this._showNotification('Terjadi kesalahan saat menyimpan story');
+      }
+    });
+  }
+
+  _showNotification(message) {
+    try {
+      // Tambahkan elemen notifikasi jika belum ada
+      let notificationEl = document.querySelector('.toast-notification');
+      if (!notificationEl) {
+        notificationEl = document.createElement('div');
+        notificationEl.className = 'toast-notification hidden';
+        document.body.appendChild(notificationEl);
+      }
+
+      // Pastikan elemen sudah di-append ke DOM sebelum dimanipulasi
+      setTimeout(() => {
+        if (notificationEl) {
+          notificationEl.textContent = message;
+          notificationEl.classList.remove('hidden');
+          
+          // Hilangkan setelah 3 detik
+          setTimeout(() => {
+            if (notificationEl) {
+              notificationEl.classList.add('hidden');
+            }
+          }, 3000);
+        }
+      }, 0);
+    } catch (error) {
+      console.error('Error showing notification:', error);
+    }
   }
 
   initMap(story) {
