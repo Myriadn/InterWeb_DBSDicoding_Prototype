@@ -1,2 +1,2 @@
-APP_URL=<url_aplikasi>
+APP_URL=https://myriadnstoryapp.netlify.app/
 MAP_SERVICE_API_KEY=TiT8kbsd6BWDDh8fs3Pn
