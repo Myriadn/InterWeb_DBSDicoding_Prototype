@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Myriadn Story App - Offline Mode" />
+    <meta name="theme-color" content="#3498db" />
+    
+    <link rel="shortcut icon" href="favicon.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/images/icons/maskable_icon_x192.png" />
+    
+    <title>Story App - Offline Mode</title>
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background-color: #f5f7fa;
+        color: #333;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        line-height: 1.6;
+      }
+
+      header {
+        background-color: #3498db;
+        color: white;
+        padding: 1rem;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+
+      .main-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 1200px;
+        margin: 0 auto;
+        width: 100%;
+      }
+
+      .brand-name {
+        font-size: 1.5rem;
+        font-weight: 700;
+        text-decoration: none;
+        color: white;
+      }
+
+      main {
+        flex: 1;
+        padding: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+        width: 100%;
+      }
+
+      .offline-container {
+        text-align: center;
+        padding: 3rem 1rem;
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .offline-icon {
+        font-size: 3.5rem;
+        color: #e74c3c;
+        margin-bottom: 1rem;
+        display: inline-block;
+        width: 80px;
+        height: 80px;
+        line-height: 80px;
+        text-align: center;
+      }
+
+      .offline-title {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: #2c3e50;
+      }
+
+      .offline-message {
+        margin-bottom: 2rem;
+        color: #666;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .btn-retry {
+        background-color: #3498db;
+        color: white;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 30px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .btn-retry:hover, .btn-retry:focus {
+        background-color: #2980b9;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+      
+      .btn-retry:focus {
+        outline: 2px solid #3498db;
+        outline-offset: 2px;
+      }
+
+      @media (max-width: 768px) {
+        .offline-title {
+          font-size: 1.5rem;
+        }
+
+        .offline-icon {
+          font-size: 3rem;
+          width: 70px;
+          height: 70px;
+          line-height: 70px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="main-header">
+        <a class="brand-name" href="/">Myriadn Story App</a>
+      </div>
+    </header>
+
+    <main>
+      <div class="offline-container" role="alert" aria-live="assertive">
+        <div class="offline-icon" aria-hidden="true">⚠️</div>
+        <h1 class="offline-title">Anda sedang offline</h1>
+        <p class="offline-message">
+          Maaf, Anda sedang tidak terhubung ke internet. Halaman yang Anda cari tidak tersedia
+          dalam mode offline. Silakan periksa koneksi internet Anda dan coba lagi.
+        </p>
+        <button class="btn-retry" id="reload-btn">Coba Lagi</button>
+      </div>
+    </main>
+
+    <script>
+      // Membuat variabel untuk tombol reload
+      const reloadButton = document.getElementById('reload-btn');
+      
+      // Menambahkan event listener untuk tombol reload
+      if (reloadButton) {
+        reloadButton.addEventListener('click', function() {
+          // Periksa koneksi sebelum reload
+          if (navigator.onLine) {
+            window.location.reload();
+          } else {
+            // Memberi tahu pengguna bahwa masih offline
+            alert('Anda masih offline. Silakan periksa koneksi internet Anda.');
+          }
+        });
+      }
+
+      // Cek ketika kembali online
+      window.addEventListener('online', function() {
+        // Menunggu beberapa detik untuk memastikan koneksi stabil
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      });
+      
+      // Tangkap tombol keyboard untuk aksesibilitas
+      document.addEventListener('keydown', function(event) {
+        // Jika tombol Enter atau Space ditekan saat fokus pada tombol reload
+        if ((event.key === 'Enter' || event.key === ' ') && 
+            document.activeElement === reloadButton) {
+          event.preventDefault();
+          reloadButton.click();
+        }
+      });
+    </script>
+  </body>
+</html>
