@@ -142,14 +142,31 @@ export default class AddStoryPage {
       let marker;
       map.on("click", (e) => {
         const { lat, lng } = e.latlng;
-        if (marker) {
-          marker.setLatLng([lat, lng]);
-        } else {
-          marker = L.marker([lat, lng]).addTo(map);
-          marker.bindPopup("Lokasi story Anda").openPopup();
-        }
+        // Format latitude and longitude to 6 decimal places for better readability
+        const formattedLat = lat.toFixed(6);
+        const formattedLng = lng.toFixed(6);
+        
+        // Update hidden input values
         document.getElementById("lat").value = lat;
         document.getElementById("lon").value = lng;
+        
+        // Create popup content with coordinates
+        const popupContent = `
+          <div class="location-popup">
+            ${formattedLat}, ${formattedLng}
+          </div>
+        `;
+        
+        if (marker) {
+          // Update existing marker position
+          marker.setLatLng([lat, lng]);
+          marker.getPopup().setContent(popupContent);
+          marker.openPopup();
+        } else {
+          // Create new marker with popup
+          marker = L.marker([lat, lng]).addTo(map);
+          marker.bindPopup(popupContent).openPopup();
+        }
       });
 
       // Try to get approximate location if needed
