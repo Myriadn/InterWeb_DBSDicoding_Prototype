@@ -3,37 +3,59 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Aplikasi berbagi cerita dan foto dengan pengalaman pengguna yang cepat dan responsif" />
+    <meta
+      name="description"
+      content="Aplikasi berbagi cerita dan foto dengan pengalaman pengguna yang cepat dan responsif"
+    />
     <meta name="theme-color" content="#3498db" />
-    
+
     <!-- Preconnect untuk domain eksternal -->
     <link rel="preconnect" href="https://unpkg.com" crossorigin />
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    
+
     <link rel="shortcut icon" href="favicon.png" />
     <link rel="manifest" href="/app.webmanifest" />
     <link rel="apple-touch-icon" href="/images/icons/maskable_icon_x192.png" />
-    
+
     <!-- Preload critical assets -->
     <link rel="preload" href="/images/logo.png" as="image" />
-    
+
     <!-- Load non-critical CSS asynchronously -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" media="print" onload="this.media='all'" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" media="print" onload="this.media='all'" />
-    
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      media="print"
+      onload="this.media='all'"
+    />
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      defer
+    ></script>
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      media="print"
+      onload="this.media='all'"
+    />
+
     <!-- Font optimization -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap" media="print" onload="this.media='all'" />
-    
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Open+Sans:wght@400;600&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+
     <title>Myriadn Story App</title>
     <!-- Critical inline CSS for initial render -->
     <style>
       /* Inline critical CSS */
       body {
-        font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
         margin: 0;
         padding: 0;
         background-color: #f5f7fa;
@@ -44,12 +66,16 @@
         left: 0;
         background: #3498db;
         color: white;
-        padding: 8px;
-        z-index: 100;
+        padding: 8px 16px;
+        z-index: 1001;
         transition: top 0.3s;
+        text-decoration: none;
+        font-weight: bold;
+        border-radius: 0 0 4px 0;
       }
       .skip-to-content:focus {
         top: 0;
+        outline: 3px solid #f39c12;
       }
       .content-focused {
         outline: 2px solid #3498db;
@@ -80,11 +106,17 @@
       }
       /* Provide fallback for font loading */
       .font-fallback {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
     </style>
     <!-- Preload font for better CLS -->
-    <link rel="preload" href="https://fonts.gstatic.com/s/poppins/v20/pxiEyp8kv8JHgFVrJJfecg.woff2" as="font" type="font/woff2" crossorigin>
+    <link
+      rel="preload"
+      href="https://fonts.gstatic.com/s/poppins/v20/pxiEyp8kv8JHgFVrJJfecg.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
   </head>
   <body>
     <a href="#main-content" class="skip-to-content" id="skip-link"
@@ -102,7 +134,11 @@
         >
           ☰
         </button>
-        <nav id="navigation-drawer" class="navigation-drawer" aria-label="Menu Navigasi">
+        <nav
+          id="navigation-drawer"
+          class="navigation-drawer"
+          aria-label="Menu Navigasi"
+        >
           <ul id="nav-list" class="nav-list">
             <!-- Navigation items will be dynamically loaded based on login state -->
           </ul>
@@ -112,9 +148,13 @@
 
     <main id="main-content" class="main-content" tabindex="-1"></main>
     <!-- Application Shell end -->
-    
+
     <!-- Offline notification -->
-    <div id="offline-notification" class="offline-notification hidden" aria-live="assertive">
+    <div
+      id="offline-notification"
+      class="offline-notification hidden"
+      aria-live="assertive"
+    >
       Anda sedang offline. Beberapa fitur mungkin tidak tersedia.
     </div>
 
@@ -131,36 +171,42 @@
 
     <script>
       // Detect offline/online status
-      window.addEventListener('online', () => {
-        document.getElementById('offline-notification').classList.add('hidden');
+      window.addEventListener("online", () => {
+        document.getElementById("offline-notification").classList.add("hidden");
       });
-      
-      window.addEventListener('offline', () => {
-        document.getElementById('offline-notification').classList.remove('hidden');
+
+      window.addEventListener("offline", () => {
+        document
+          .getElementById("offline-notification")
+          .classList.remove("hidden");
       });
-      
+
       // Handle PWA installation
       let deferredPrompt;
-      window.addEventListener('beforeinstallprompt', (e) => {
+      window.addEventListener("beforeinstallprompt", (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        document.getElementById('install-app').classList.remove('hidden');
+        document.getElementById("install-app").classList.remove("hidden");
       });
-      
-      document.getElementById('install-button').addEventListener('click', async () => {
-        if (deferredPrompt) {
-          deferredPrompt.prompt();
-          const { outcome } = await deferredPrompt.userChoice;
-          console.log(`User response to install prompt: ${outcome}`);
-          deferredPrompt = null;
-          document.getElementById('install-app').classList.add('hidden');
-        }
-      });
-      
-      document.getElementById('dismiss-install').addEventListener('click', () => {
-        document.getElementById('install-app').classList.add('hidden');
-      });
-      
+
+      document
+        .getElementById("install-button")
+        .addEventListener("click", async () => {
+          if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`User response to install prompt: ${outcome}`);
+            deferredPrompt = null;
+            document.getElementById("install-app").classList.add("hidden");
+          }
+        });
+
+      document
+        .getElementById("dismiss-install")
+        .addEventListener("click", () => {
+          document.getElementById("install-app").classList.add("hidden");
+        });
+
       // Skip to content functionality
       document.addEventListener("DOMContentLoaded", function () {
         // Skip to content functionality
@@ -198,14 +244,85 @@
         const setupMobileNavigation = () => {
           const drawerButton = document.getElementById("drawer-button");
           const navDrawer = document.getElementById("navigation-drawer");
+          const navList = document.getElementById("nav-list");
 
           if (drawerButton && navDrawer) {
+            // Make drawer button keyboard accessible (Tab key)
+            drawerButton.setAttribute("tabindex", "0");
+
             // Add event listener to toggle navigation drawer
             drawerButton.addEventListener("click", () => {
+              toggleDrawer();
+            });
+
+            // Add keyboard support for drawer button (Enter and Space)
+            drawerButton.addEventListener("keydown", (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                toggleDrawer();
+              }
+            });
+
+            // Function to toggle drawer state
+            const toggleDrawer = () => {
+              const isOpen = navDrawer.classList.contains("open");
               navDrawer.classList.toggle("open");
+
               // Update ARIA attributes for accessibility
-              const isExpanded = navDrawer.classList.contains("open");
-              drawerButton.setAttribute("aria-expanded", isExpanded);
+              drawerButton.setAttribute("aria-expanded", !isOpen);
+
+              // If opening, focus the first nav link
+              if (!isOpen) {
+                // Get all focusable elements within the navigation
+                const focusableElements = navDrawer.querySelectorAll(
+                  'a[href], button, [tabindex]:not([tabindex="-1"])'
+                );
+
+                if (focusableElements.length) {
+                  // Set timeout to ensure DOM is updated before focus
+                  setTimeout(() => {
+                    focusableElements[0].focus();
+                  }, 100);
+                }
+              }
+            };
+
+            // Handle keyboard navigation within the drawer
+            navDrawer.addEventListener("keydown", (event) => {
+              // Close on Escape key
+              if (event.key === "Escape") {
+                navDrawer.classList.remove("open");
+                drawerButton.setAttribute("aria-expanded", "false");
+                drawerButton.focus(); // Return focus to the drawer button
+                return;
+              }
+
+              // Only handle tab navigation if drawer is open
+              if (event.key === "Tab" && navDrawer.classList.contains("open")) {
+                const focusableElements = navDrawer.querySelectorAll(
+                  'a[href], button, [tabindex]:not([tabindex="-1"])'
+                );
+
+                if (focusableElements.length === 0) return;
+
+                const firstElement = focusableElements[0];
+                const lastElement =
+                  focusableElements[focusableElements.length - 1];
+
+                // Shift+Tab on first element should move to last element
+                if (event.shiftKey && document.activeElement === firstElement) {
+                  event.preventDefault();
+                  lastElement.focus();
+                }
+                // Tab on last element should move to first element - trap focus within the drawer
+                else if (
+                  !event.shiftKey &&
+                  document.activeElement === lastElement
+                ) {
+                  event.preventDefault();
+                  firstElement.focus();
+                }
+              }
             });
 
             // Close drawer when clicking outside
